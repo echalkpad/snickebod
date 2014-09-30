@@ -21,78 +21,85 @@ import edu.stanford.nlp.util.PriorityQueue;
 
 public class TfIdfProvider {
 
-	private final int numDocuments;
+    private final int numDocuments;
 
-	/**
-	 * For each lemma, stores the number of documents in which it occurs.
-	 */
-	private final Map<String, Integer> documentFrequencies;
+    /**
+     * For each lemma, stores the number of documents in which it occurs.
+     */
+    private final Map<String, Integer> documentFrequencies;
 
-	private TfIdfProvider(int numDocs) {
-		this.documentFrequencies = new HashMap<>();
-		this.numDocuments = numDocs;
-	}
+    private TfIdfProvider(int numDocs) {
+        this.documentFrequencies = new HashMap<>();
+        this.numDocuments = numDocs;
+    }
 
-	public static TfIdfProvider of(AnnotationProvider annotationProvider,
-			Dataset dataset) {
-		TfIdfProvider result = new TfIdfProvider(dataset.getDocuments().size());
+    public static TfIdfProvider of(AnnotationProvider annotationProvider,
+                                   Dataset dataset) {
+        int counter = 0;
+        TfIdfProvider result = new TfIdfProvider(dataset.getDocuments().size());
 
-		for (Document document : dataset.getDocuments()) {
-			String content = document.getContent();
-			Annotation annotation = annotationProvider.getAnnotation(content);
-			Multiset<String> lemmaFreqs = getLemmaFreqs(annotation);
-			for (String lemma : lemmaFreqs.elementSet()) {
-				int newFrequency = result.getDocumentFrequency(lemma) + 1;
-				result.documentFrequencies.put(lemma, newFrequency);
-			}
-		}
+        System.out.println("total size: " + dataset.getDocuments().size());
 
-		return result;
-	}
+        for (Document document : dataset.getDocuments()) {
+            System.out.println("Parsed " + counter);
+            ++counter;
+            String content = document.getContent();
+            Annotation annotation = annotationProvider.getAnnotation(content);
+            Multiset<String> lemmaFreqs = getLemmaFreqs(annotation);
+            for (String lemma : lemmaFreqs.elementSet()) {
+                int newFrequency = result.getDocumentFrequency(lemma) + 1;
+                result.documentFrequencies.put(lemma, newFrequency);
+            }
+        }
 
-	/**
-	 * Compute the frequency of each term in the given annotation.
-	 */
-	protected static Multiset<String> getLemmaFreqs(Annotation annotation) {
-		CoreNLPUtil.ensureLemmaAnnotation(annotation);
-		Multiset<String> termFreqs = HashMultiset.create();
+        System.out.println("DONE");
 
-		for (CoreMap sentence : annotation.get(SentencesAnnotation.class)) {
-			for (CoreLabel label : sentence.get(TokensAnnotation.class)) {
-				termFreqs.add(label.lemma());
-			}
-		}
+        return result;
+    }
 
-		return termFreqs;
-	}
+    /**
+     * Compute the frequency of each term in the given annotation.
+     */
+    protected static Multiset<String> getLemmaFreqs(Annotation annotation) {
+        CoreNLPUtil.ensureLemmaAnnotation(annotation);
+        Multiset<String> termFreqs = HashMultiset.create();
 
-	public int getNumDocuments() {
-		return numDocuments;
-	}
+        for (CoreMap sentence : annotation.get(SentencesAnnotation.class)) {
+            for (CoreLabel label : sentence.get(TokensAnnotation.class)) {
+                termFreqs.add(label.lemma());
+            }
+        }
 
-	public int getDocumentFrequency(String lemma) {
-		Integer result = documentFrequencies.get(lemma);
-		return (result == null) ? 0 : result;
-	}
+        return termFreqs;
+    }
 
-	/**
-	 * Compute the tf-idf score for each lemma in the given annotation.
-	 */
-	public PriorityQueue<String> getTfIdfMap(Annotation annotation) {
-		Multiset<String> lemmaFreqs = getLemmaFreqs(annotation);
-		PriorityQueue<String> tfIdfMap = new BinaryHeapPriorityQueue<>();
+    public int getNumDocuments() {
+        return numDocuments;
+    }
 
-		for (String lemma : lemmaFreqs.elementSet()) {
-			double lemmaFreq = lemmaFreqs.count(lemma);
-			double docFreq = getDocumentFrequency(lemma);
-			if (docFreq > 0) {
-				double inverseDocFreq = Math.log(getNumDocuments() / docFreq);
-				double tfIdf = lemmaFreq * inverseDocFreq;
-				tfIdfMap.add(lemma, tfIdf);
-			}
-		}
+    public int getDocumentFrequency(String lemma) {
+        Integer result = documentFrequencies.get(lemma);
+        return (result == null) ? 0 : result;
+    }
 
-		return tfIdfMap;
-	}
+    /**
+     * Compute the tf-idf score for each lemma in the given annotation.
+     */
+    public PriorityQueue<String> getTfIdfMap(Annotation annotation) {
+        Multiset<String> lemmaFreqs = getLemmaFreqs(annotation);
+        PriorityQueue<String> tfIdfMap = new BinaryHeapPriorityQueue<>();
+
+        for (String lemma : lemmaFreqs.elementSet()) {
+            double lemmaFreq = lemmaFreqs.count(lemma);
+            double docFreq = getDocumentFrequency(lemma);
+            if (docFreq > 0) {
+                double inverseDocFreq = Math.log(getNumDocuments() / docFreq);
+                double tfIdf = lemmaFreq * inverseDocFreq;
+                tfIdfMap.add(lemma, tfIdf);
+            }
+        }
+
+        return tfIdfMap;
+    }
 
 }

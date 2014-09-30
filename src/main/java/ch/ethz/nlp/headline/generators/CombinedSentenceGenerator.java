@@ -11,30 +11,30 @@ import edu.stanford.nlp.pipeline.Annotation;
  */
 public class CombinedSentenceGenerator extends CoreNLPGenerator {
 
-	private final ScoredSentencesSelector sentencesSelector;
+    private final ScoredSentencesSelector sentencesSelector;
     private final boolean lemma;
 
-	public CombinedSentenceGenerator(AnnotationCache cache,
-					 TfIdfProvider tfIdfProvider, boolean lemma) {
-		super(cache);
+    public CombinedSentenceGenerator(AnnotationCache cache,
+                                     TfIdfProvider tfIdfProvider, boolean lemma) {
+        super(cache);
 
-		this.sentencesSelector = new ScoredSentencesSelector(tfIdfProvider);
-		this.lemma = lemma;
-	}
+        this.sentencesSelector = new ScoredSentencesSelector(tfIdfProvider);
+        this.lemma = lemma;
+    }
 
-	@Override
-	public String getId() {
-		return "COMBINED-SENTENCE";
-	}
+    @Override
+    public String getId() {
+        return "COMBINED-SENTENCE";
+    }
 
-	@Override
-	protected Annotation generate(Annotation annotation) {
-	    annotation = sentencesSelector.select(annotation);
-	    if (lemma) {
-		    CoreNLPUtil.ensureLemmaAnnotation(annotation);
-	    }
+    @Override
+    protected Annotation generate(Annotation annotation) {
+        annotation = sentencesSelector.select(annotation);
+        if (lemma) {
+            CoreNLPUtil.ensureLemmaAnnotation(annotation);
+        }
 
-	    return annotation;
-	}
+        return annotation;
+    }
 
 }

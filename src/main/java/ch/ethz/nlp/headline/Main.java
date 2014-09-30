@@ -27,64 +27,64 @@ import com.google.common.collect.Multimap;
 
 public class Main {
 
-	private static final Logger LOG = LoggerFactory.getLogger(Main.class);
-	private static final String EVALUATION_CONFIG_FILENAME = "evaluation.conf";
+    private static final Logger LOG = LoggerFactory.getLogger(Main.class);
+    private static final String EVALUATION_CONFIG_FILENAME = "evaluation.conf";
 
-	public static void main(String[] args) throws ClassNotFoundException,
-			IOException {
-		Config config = new Config();
-		Dataset dataset = Duc2004Dataset.ofDefaultRoot();
-		List<Task> tasks = dataset.getTasks();
+    public static void main(String[] args) throws ClassNotFoundException,
+                                                  IOException {
+        Config config = new Config();
 
-		AnnotationCache richCache = new AnnotationCache(
-				new RichAnnotationProvider());
-		AnnotationProvider slimCache = new AnnotationCache(
-				new SlimAnnotationProvider());
+        Dataset dataset = Duc2004Dataset.ofDefaultRoot();
+        List<Task> tasks = dataset.getTasks();
 
-		TfIdfProvider tfIdfProvider = TfIdfProvider.of(richCache, dataset);
+        AnnotationCache richCache = new AnnotationCache(
+                                                        new RichAnnotationProvider());
+        AnnotationProvider slimCache = new AnnotationCache(
+                                                           new SlimAnnotationProvider());
 
+        TfIdfProvider tfIdfProvider = TfIdfProvider.of(richCache, dataset);
 
-		List<CoreNLPGenerator> generators = new ArrayList<>();
-		generators.add(new CombinedSentenceGenerator(richCache, tfIdfProvider, true));
-		/*		generators.add(new CombinedSentenceGenerator(richCache, tfIdfProvider, true));*/
+        List<CoreNLPGenerator> generators = new ArrayList<>();
+        generators.add(new CombinedSentenceGenerator(richCache, tfIdfProvider, false));
+        /*              generators.add(new CombinedSentenceGenerator(richCache, tfIdfProvider, true));*/
 
-		Multimap<Task, Peer> peersMap = LinkedListMultimap.create();
+        Multimap<Task, Peer> peersMap = LinkedListMultimap.create();
 
-		for (int i = 0; i < tasks.size(); i++) {
-			Task task = tasks.get(i);
-			Document document = task.getDocument();
-			String documentId = document.getId().toString();
-			String documentContent = document.getContent();
+        for (int i = 0; i < tasks.size(); i++) {
+            Task task = tasks.get(i);
+            Document document = task.getDocument();
+            String documentId = document.getId().toString();
+            String documentContent = document.getContent();
 
-			if (config.getFilterDocumentId().isPresent()
-					&& !documentId.equals(config.getFilterDocumentId().get())) {
-				continue;
-			}
+            if (config.getFilterDocumentId().isPresent()
+                && !documentId.equals(config.getFilterDocumentId().get())) {
+                continue;
+            }
 
-			LOG.info(String.format("Processing task %d of %d: %s", i + 1,
-					tasks.size(), documentId));
+            LOG.info(String.format("Processing task %d of %d: %s", i + 1,
+                                   tasks.size(), documentId));
 
-			for (Generator generator : generators) {
-				String headline = generator.generate(documentContent);
-				Peer peer = dataset.makePeer(task, generator.getId());
-				try {
-					peer.store(headline);
-				} catch (IOException e) {
-					e.printStackTrace();
-					System.exit(-1);
-				}
-				peersMap.put(task, peer);
-			}
-		}
+            for (Generator generator : generators) {
+                String headline = generator.generate(documentContent);
+                Peer peer = dataset.makePeer(task, generator.getId());
+                try {
+                    peer.store(headline);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    System.exit(-1);
+                }
+                peersMap.put(task, peer);
+            }
+        }
 
-		for (CoreNLPGenerator generator : generators) {
-			LOG.info(generator.getStatistics().toString());
-		}
+        for (CoreNLPGenerator generator : generators) {
+            LOG.info(generator.getStatistics().toString());
+        }
 
-		EvaluationConfig evaluationConfig = new EvaluationConfig(dataset);
-		Path configPath = FileSystems.getDefault().getPath(
-				EVALUATION_CONFIG_FILENAME);
-		evaluationConfig.write(configPath, peersMap);
-	}
+        EvaluationConfig evaluationConfig = new EvaluationConfig(dataset);
+        Path configPath = FileSystems.getDefault().getPath(
+                                                           EVALUATION_CONFIG_FILENAME);
+        evaluationConfig.write(configPath, peersMap);
+    }
 
 }

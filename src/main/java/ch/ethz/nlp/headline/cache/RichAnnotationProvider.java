@@ -10,19 +10,19 @@ import edu.stanford.nlp.pipeline.Annotation;
  */
 public class RichAnnotationProvider implements AnnotationProvider {
 
-	@Override
-	public Annotation getAnnotation(String content) {
-		Annotation annotation = new Annotation(content);
-		//CoreNLPUtil.ensureLemmaAnnotation(annotation);
-				CoreNLPUtil.ensureNamedEntityTagAnnotation(annotation);
-				CoreNLPUtil.ensureTreeAnnotation(annotation);
+    @Override
+    public Annotation getAnnotation(String content) {
+        Annotation annotation = new Annotation(content);
+        CoreNLPUtil.ensureLemmaAnnotation(annotation);
+        //CoreNLPUtil.ensureNamedEntityTagAnnotation(annotation);
+        //CoreNLPUtil.ensureTreeAnnotation(annotation);
 
-		return annotation;
-	}
+        return annotation;
+    }
 
-	@Override
-	public String getId() {
-		return "rich";
-	}
+    @Override
+    public String getId() {
+        return "rich";
+    }
 
 }

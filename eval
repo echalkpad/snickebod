@@ -16,7 +16,7 @@ find $DUC_PEERS_DIR -type f | xargs rm -f
 
 start_time=`date +%s`
 mvn install
-mvn --quiet exec:java -Dexec.mainClass="ch.ethz.nlp.headline.Main" -e -X
+mvn --quiet exec:java -Dexec.mainClass="ch.ethz.nlp.headline.Main"
 end_time=`date +%s`
 
 echo "Summarization process took $(expr $end_time - $start_time) s"

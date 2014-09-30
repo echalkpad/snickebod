@@ -10,20 +10,20 @@ import edu.stanford.nlp.pipeline.Annotation;
  */
 public class BaselineGenerator extends CoreNLPGenerator {
 
-	private final SentencesSelector sentencesSelector = new FirstSentenceSelector();
+    private final SentencesSelector sentencesSelector = new FirstSentenceSelector();
 
-	public BaselineGenerator(AnnotationProvider annotationProvider) {
-		super(annotationProvider);
-	}
+    public BaselineGenerator(AnnotationProvider annotationProvider) {
+        super(annotationProvider);
+    }
 
-	@Override
-	public String getId() {
-		return "BASE";
-	}
+    @Override
+    public String getId() {
+        return "BASE";
+    }
 
-	@Override
-	protected Annotation generate(Annotation annotation) {
-		return sentencesSelector.select(annotation);
-	}
+    @Override
+    protected Annotation generate(Annotation annotation) {
+        return sentencesSelector.select(annotation);
+    }
 
 }
