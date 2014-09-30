@@ -10,6 +10,7 @@ import ch.ethz.nlp.headline.selection.SentencesSelector;
 import ch.ethz.nlp.headline.selection.TfIdfProvider;
 import ch.ethz.nlp.headline.selection.ScoredSentencesSelector;
 import ch.ethz.nlp.headline.util.GentleAnnotationStringBuilder;
+import ch.ethz.nlp.headline.util.CoreNLPUtil;
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.util.PriorityQueue;
 
@@ -18,9 +19,10 @@ public class TrainedGenerator extends CoreNLPGenerator {
 	private final TfIdfProvider tfIdfProvider;
 	private final SentencesSelector sentencesSelector;
 	private final TrainedCompressor trainedCompressor;
+    private final boolean lemma;
 
 	public TrainedGenerator(AnnotationProvider annotationProvider,
-			TfIdfProvider tfIdfProvider) {
+				TfIdfProvider tfIdfProvider, boolean lemma) {
 		super(annotationProvider, CombinedPreprocessor.all(),
 				GentleAnnotationStringBuilder.INSTANCE);
 
@@ -35,6 +37,7 @@ public class TrainedGenerator extends CoreNLPGenerator {
 		this.tfIdfProvider = tfIdfProvider;
 		this.sentencesSelector = new ScoredSentencesSelector(tfIdfProvider);
 		this.trainedCompressor = new TrainedCompressor(model);
+		this.lemma = lemma;
 	}
 
 	@Override
@@ -48,6 +51,10 @@ public class TrainedGenerator extends CoreNLPGenerator {
 
 		annotation = sentencesSelector.select(annotation);
 		annotation = trainedCompressor.compress(annotation, tfIdfMap);
+
+		if (lemma) {
+		    CoreNLPUtil.ensureLemmaAnnotation(annotation);
+		}
 
 		return annotation;
 	}
