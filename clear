@@ -1,0 +1,4 @@
+#!/bin/sh
+
+rm -rf cache_*
+rm -rf duc2004/eval/peers

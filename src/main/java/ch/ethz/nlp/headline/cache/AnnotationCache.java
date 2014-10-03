@@ -23,99 +23,99 @@ import edu.stanford.nlp.trees.TreeGraphNode;
 
 public class AnnotationCache implements AnnotationProvider {
 
-	private static final String DEFAULT_ROOT_PREFIX = "cache_";
+    private static final String DEFAULT_ROOT_PREFIX = "cache_";
 
-	private final AnnotationProvider annotationProvider;
+    private final AnnotationProvider annotationProvider;
 
-	private final Path rootFolder;
-	private final MessageDigest messageDigest;
-	private final Kryo kryo;
+    private final Path rootFolder;
+    private final MessageDigest messageDigest;
+    private final Kryo kryo;
 
-	public AnnotationCache(AnnotationProvider annotationProvider,
-			Path rootFolder) {
-		super();
-		this.annotationProvider = annotationProvider;
-		this.rootFolder = rootFolder;
+    public AnnotationCache(AnnotationProvider annotationProvider,
+                           Path rootFolder) {
+        super();
+        this.annotationProvider = annotationProvider;
+        this.rootFolder = rootFolder;
 
-		rootFolder.toFile().mkdirs();
+        rootFolder.toFile().mkdirs();
 
-		MessageDigest messageDigest = null;
-		try {
-			messageDigest = MessageDigest.getInstance("MD5");
-		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
-			System.exit(-1);
-		}
-		this.messageDigest = messageDigest;
-		this.kryo = new Kryo();
+        MessageDigest messageDigest = null;
+        try {
+            messageDigest = MessageDigest.getInstance("MD5");
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            System.exit(-1);
+        }
+        this.messageDigest = messageDigest;
+        this.kryo = new Kryo();
 
-		kryo.register(LabeledScoredTreeNode.class,
-				new FieldSerializer<LabeledScoredTreeNode>(kryo,
-						LabeledScoredTreeNode.class));
-		kryo.register(TreeGraphNode.class, new FieldSerializer<TreeGraphNode>(
-				kryo, TreeGraphNode.class));
-		kryo.register(EnglishGrammaticalStructure.class,
-				new FieldSerializer<EnglishGrammaticalStructure>(kryo,
-						EnglishGrammaticalStructure.class));
-	}
+        kryo.register(LabeledScoredTreeNode.class,
+                      new FieldSerializer<LabeledScoredTreeNode>(kryo,
+                                                                 LabeledScoredTreeNode.class));
+        kryo.register(TreeGraphNode.class, new FieldSerializer<TreeGraphNode>(
+                                                                              kryo, TreeGraphNode.class));
+        kryo.register(EnglishGrammaticalStructure.class,
+                      new FieldSerializer<EnglishGrammaticalStructure>(kryo,
+                                                                       EnglishGrammaticalStructure.class));
+    }
 
-	public AnnotationCache(AnnotationProvider annotationProvider) {
-		this(annotationProvider, FileSystems.getDefault().getPath(
-				DEFAULT_ROOT_PREFIX + annotationProvider.getId()));
-	}
+    public AnnotationCache(AnnotationProvider annotationProvider) {
+        this(annotationProvider, FileSystems.getDefault().getPath(
+                                                                  DEFAULT_ROOT_PREFIX + annotationProvider.getId()));
+    }
 
-	@Override
-	public Annotation getAnnotation(String content) {
-		String hash = stringToMD5(content);
-		Path cacheFilePath = rootFolder.resolve(hash);
-		Annotation annotation = null;
+    @Override
+    public Annotation getAnnotation(String content) {
+        String hash = stringToMD5(content);
+        Path cacheFilePath = rootFolder.resolve(hash);
+        Annotation annotation = null;
 
-		if (cacheFilePath.toFile().exists()) {
-			annotation = loadAnnotation(cacheFilePath);
-		} else {
-			annotation = annotationProvider.getAnnotation(content);
-			storeAnnotation(cacheFilePath, annotation);
-		}
+        if (cacheFilePath.toFile().exists()) {
+            annotation = loadAnnotation(cacheFilePath);
+        } else {
+            annotation = annotationProvider.getAnnotation(content);
+            storeAnnotation(cacheFilePath, annotation);
+        }
 
-		return annotation;
-	}
+        return annotation;
+    }
 
-	private Annotation loadAnnotation(Path cacheFilePath) {
-		Annotation annotation = null;
-		File cacheFile = cacheFilePath.toFile();
-		try (FileInputStream fileIn = new FileInputStream(cacheFile)) {
-			try (Input in = new Input(fileIn)) {
-				annotation = kryo.readObject(in, Annotation.class);
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-			System.exit(-1);
-		}
-		return annotation;
-	}
+    private Annotation loadAnnotation(Path cacheFilePath) {
+        Annotation annotation = null;
+        File cacheFile = cacheFilePath.toFile();
+        try (FileInputStream fileIn = new FileInputStream(cacheFile)) {
+                try (Input in = new Input(fileIn)) {
+                        annotation = kryo.readObject(in, Annotation.class);
+                    }
+            } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(-1);
+        }
+        return annotation;
+    }
 
-	private void storeAnnotation(Path cacheFilePath, Annotation annotation) {
-		File cacheFile = cacheFilePath.toFile();
-		try (FileOutputStream fileOut = new FileOutputStream(cacheFile)) {
-			try (Output output = new Output(fileOut)) {
-				kryo.writeObject(output, annotation);
-			}
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
+    private void storeAnnotation(Path cacheFilePath, Annotation annotation) {
+        File cacheFile = cacheFilePath.toFile();
+        try (FileOutputStream fileOut = new FileOutputStream(cacheFile)) {
+                try (Output output = new Output(fileOut)) {
+                        kryo.writeObject(output, annotation);
+                    }
+            } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
-	private String stringToMD5(String content) {
-		byte[] bytes = content.getBytes(Charset.forName("UTF-8"));
-		messageDigest.update(bytes, 0, content.length());
-		return new BigInteger(1, messageDigest.digest()).toString(16);
-	}
+    private String stringToMD5(String content) {
+        byte[] bytes = content.getBytes(Charset.forName("UTF-8"));
+        messageDigest.update(bytes, 0, content.length());
+        return new BigInteger(1, messageDigest.digest()).toString(16);
+    }
 
-	@Override
-	public String getId() {
-		return "cache_" + annotationProvider.getId();
-	}
+    @Override
+    public String getId() {
+        return "cache_" + annotationProvider.getId();
+    }
 
 }

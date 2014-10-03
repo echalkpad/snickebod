@@ -20,36 +20,36 @@ import edu.stanford.nlp.pipeline.Annotation;
 
 public class HedgeTrimmerGenerator extends CoreNLPGenerator {
 
-	private final SentencesSelector sentencesSelector;
-	private final SentencesCompressor sentencesCompressor;
+    private final SentencesSelector sentencesSelector;
+    private final SentencesCompressor sentencesCompressor;
 
-	public HedgeTrimmerGenerator(AnnotationProvider annotationProvider,
-			TfIdfProvider tfIdfProvider) {
-		super(annotationProvider, CombinedPreprocessor.all(),
-				GentleAnnotationStringBuilder.INSTANCE);
+    public HedgeTrimmerGenerator(AnnotationProvider annotationProvider,
+                                 TfIdfProvider tfIdfProvider) {
+        super(annotationProvider, CombinedPreprocessor.all(),
+              GentleAnnotationStringBuilder.INSTANCE);
 
-		List<SentencesCompressor> compressors = new ArrayList<>();
-		compressors.add(new PersonNameCompressor());
-		compressors.add(new AppositivePruner());
-		compressors.add(new LowContentLemmaPruner());
-		compressors.add(new DatePruner());
-		compressors.add(new HedgeTrimmer());
+        List<SentencesCompressor> compressors = new ArrayList<>();
+        compressors.add(new PersonNameCompressor());
+        compressors.add(new AppositivePruner());
+        compressors.add(new LowContentLemmaPruner());
+        compressors.add(new DatePruner());
+        compressors.add(new HedgeTrimmer());
 
-		this.sentencesSelector = new ScoredSentencesSelector(tfIdfProvider);
-		this.sentencesCompressor = new CombinedCompressor(compressors);
-	}
+        this.sentencesSelector = new ScoredSentencesSelector(tfIdfProvider);
+        this.sentencesCompressor = new CombinedCompressor(compressors);
+    }
 
-	@Override
-	public String getId() {
-		return "HEDGE";
-	}
+    @Override
+    public String getId() {
+        return "HEDGE";
+    }
 
-	@Override
-	protected Annotation generate(Annotation annotation) {
-		annotation = sentencesSelector.select(annotation);
-		annotation = sentencesCompressor.compress(annotation);
+    @Override
+    protected Annotation generate(Annotation annotation) {
+        annotation = sentencesSelector.select(annotation);
+        annotation = sentencesCompressor.compress(annotation);
 
-		return annotation;
-	}
+        return annotation;
+    }
 
 }

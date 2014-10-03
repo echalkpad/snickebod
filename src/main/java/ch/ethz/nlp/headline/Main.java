@@ -27,6 +27,8 @@ import com.google.common.collect.Multimap;
 
 public class Main {
 
+    public static final boolean LEMMA = true;
+
     private static final Logger LOG = LoggerFactory.getLogger(Main.class);
     private static final String EVALUATION_CONFIG_FILENAME = "evaluation.conf";
 
@@ -45,8 +47,7 @@ public class Main {
         TfIdfProvider tfIdfProvider = TfIdfProvider.of(richCache, dataset);
 
         List<CoreNLPGenerator> generators = new ArrayList<>();
-        generators.add(new CombinedSentenceGenerator(richCache, tfIdfProvider, false));
-        /*              generators.add(new CombinedSentenceGenerator(richCache, tfIdfProvider, true));*/
+        generators.add(new CombinedSentenceGenerator(richCache, tfIdfProvider));
 
         Multimap<Task, Peer> peersMap = LinkedListMultimap.create();
 
@@ -55,7 +56,6 @@ public class Main {
             Document document = task.getDocument();
             String documentId = document.getId().toString();
             String documentContent = document.getContent();
-
             if (config.getFilterDocumentId().isPresent()
                 && !documentId.equals(config.getFilterDocumentId().get())) {
                 continue;

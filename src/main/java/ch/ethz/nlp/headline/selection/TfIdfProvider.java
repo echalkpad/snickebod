@@ -63,7 +63,6 @@ public class TfIdfProvider {
     protected static Multiset<String> getLemmaFreqs(Annotation annotation) {
         CoreNLPUtil.ensureLemmaAnnotation(annotation);
         Multiset<String> termFreqs = HashMultiset.create();
-
         for (CoreMap sentence : annotation.get(SentencesAnnotation.class)) {
             for (CoreLabel label : sentence.get(TokensAnnotation.class)) {
                 termFreqs.add(label.lemma());
